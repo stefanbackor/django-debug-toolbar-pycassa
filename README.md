@@ -1,5 +1,5 @@
 # Django Debug Toolbar for Pycassa NoSQL driver
-Pycassa is Apache Cassandra's python driver. This is an extension panel for Django Debug Toolbar that adds Pycassa's NoSQL stack trace debug to your debug toolbar.
+This is an extension panel for Django Debug Toolbar that adds Pycassa's NoSQL stack trace debug to your debug toolbar. Pycassa is Apache Cassandra's python driver. 
 
 ### Setup
 Modify INSTALLED_APPS and DEBUG_TOOLBAR_PANELS in your `settings.py` 
