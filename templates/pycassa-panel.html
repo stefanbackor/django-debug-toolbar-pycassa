@@ -1,0 +1,205 @@
+{% load i18n %}
+{% load pycassa_debug_tags %}
+
+<style type="text/css">
+#djDebug .djdt-panelContent .djdt-scroll {
+    overflow-y: scroll;
+}
+#djDebug .djdt-panelContent table.pycassa-op-table {
+    display: table;
+}
+#djDebug .djdt-panelContent table.pycassa-op-table,
+#djDebug .djdt-panelContent table.pycassa-op-table thead,
+#djDebug .djdt-panelContent table.pycassa-op-table tbody {
+    width: 100% !important;
+}
+    #djDebug .djdt-panelContent table.pycassa-op-table th,
+    #djDebug .djdt-panelContent table.pycassa-op-table td {
+        padding:3px 6px;
+    }
+
+#djDebug .djdt-panelContent tbody th {
+    width: auto;
+}
+#djDebug .djdt-panelContent table {
+    display: table;
+}
+#djDebug tr.row1 {
+    background-color: #F5F5F5;
+}
+#djDebug #djDebugRequestVarsPanel table:first-of-type tbody tr:nth-child(odd) {
+    background-color: #F5F5F5;
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-trace {
+    margin:0;
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-trace * {
+/*    font-size:11px !important;*/
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-data-table pre {
+    background:transparent;
+    border:0;
+    padding:0;
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-data-table .first {
+    width:30px;
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-data-table .last {
+    width:100%;
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-data-table th, 
+#djDebug .djdt-panelContent tbody td table.pycassa-data-table td {
+    padding:3px 6px;
+}
+#djDebug .djdt-panelContent tbody td table.pycassa-data-table thead th {
+    text-align:left;
+}
+
+pre.pycassa-highlight, pre.pycassa-highlight span {
+    font-family: 'Monaco', 'Consolas', monospace !important;
+    font-size: 1.05em !important;
+}
+pre.pycassa-stack-trace {
+    line-height: 2.3em !important;
+}
+table.pycassa-stack-trace th {
+    text-align: left !important;
+}
+#djDebug table.pycassa-stack-trace .code,
+#djDebug table.pycassa-stack-trace .code *, 
+#djDebug table.pycassa-stack-trace td.code span, 
+#djDebug table.pycassa-stack-trace td.function {
+    font-family: 'Monaco', 'Consolas', monospace !important;
+    font-size: inherit;
+}
+#djDebug table.pycassa-stack-trace td div.code {
+    border-left:solid 3px grey;
+    padding:0.5em 1.5em;
+    margin-left:0.5em;
+}
+</style>
+
+<h4>Batches</h4>
+{% if batches %}
+    <table class="pycassa-op-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{% trans "Column Family" %}</th>
+                <th>{% trans "Rows" %}</th>
+                <th>{% trans "Time" %} (ms)</th>
+                <th>{% trans "Data Trace" %}</th>
+                <th>{% trans "Stack Trace" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for query in batches %}
+                <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td width="100%">{{ query.action }} to <strong>{{ query.columnfamily|join:", " }}</strong>@{{ query.keyspace }}</td>
+                    <td class="rows">{{ query.count }}</td>
+                    <td class="time">{{ query.time|floatformat:"3" }}</td>
+                    <td><button href="javascript:void(0);" class="pycassa-toggle-data" data-row="pycassa-data-trace-queries-{{ forloop.counter|add:"10000" }}">{% trans "Data" %}</button></td>
+                    <td><button href="javascript:void(0);" class="pycassa-toggle-trace" data-row="pycassa-stack-trace-queries-{{ forloop.counter|add:"10000" }}">{% trans "Trace" %}</button></td>
+                </tr>
+                <tr>
+                    <td colspan="7">
+                        <table class="pycassa-trace pycassa-data-table" id="pycassa-data-trace-queries-{{ forloop.counter|add:"10000" }}">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Column Family" %}</th>
+                                    <th>{% trans "Key" %}</th>
+                                    <th>{% trans "Value" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for value in query.data %}
+                                    <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+                                        <td class="first"><strong>{{ value.1 }}</strong></td>
+                                        <td><strong>{{ value.0 }}</strong></td>
+                                        <td class="last"><pre>{{ value.2 }}</pre></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="7">
+                        {% stack_trace_table query.stack_trace forloop.counter|add:"10000" %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>{% trans "No batch inserts or deletes recorded" %}</p>
+{% endif %}
+
+<h4>Reads</h4>
+{% if queries %}
+    <table class="pycassa-op-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{% trans "Column Family" %}</th>
+                <th>{% trans "Key" %}</th>
+                <th>{% trans "Rows" %}</th>
+                <th>{% trans "Time" %} (ms)</th>
+                <th>{% trans "Data Trace" %}</th>
+                <th>{% trans "Stack Trace" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for query in queries %}
+                <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+                    <td>{{ forloop.counter }}</td>
+                    <td width="100%">{{ query.action }} from <strong>{{ query.columnfamily }}</strong>@{{ query.keyspace }}</td>
+                    <td><strong>{{ query.key|join:", " }}</strong></td>
+                    <td class="rows">{{ query.count }}</td>
+                    <td class="time">{{ query.time|floatformat:"3" }}</td>
+                    <td><button href="javascript:void(0);" class="pycassa-toggle-data" data-row="pycassa-data-trace-queries-{{ forloop.counter }}">{% trans "Data" %}</button></td>
+                    <td><button href="javascript:void(0);" class="pycassa-toggle-trace" data-row="pycassa-stack-trace-queries-{{ forloop.counter }}">{% trans "Trace" %}</button></td>
+                </tr>
+                <tr>
+                    <td colspan="8">
+                        <table class="pycassa-trace pycassa-data-table" id="pycassa-data-trace-queries-{{ forloop.counter }}">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Value" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for name, value in query.data.items %}
+                                    <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+                                        <td class="first"><strong>{{ name }}</strong></td>
+                                        <td class="last"><pre>{{ value|format_value }}</pre></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="8">
+                        {% stack_trace_table query.stack_trace forloop.counter %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>{% trans "No queries recorded" %}</p>
+{% endif %}
+
+<script>
+(function() {
+    $(".pycassa-trace").hide();
+    $(".pycassa-toggle-data,.pycassa-toggle-trace").on("click",function(){
+        var toggle_id = $(this).data("row");
+        $(".pycassa-trace").not("#"+toggle_id).hide();
+        $("#"+toggle_id).toggle();
+    });
+})();
+</script>

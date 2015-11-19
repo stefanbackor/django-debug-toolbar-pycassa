@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load pycassa_debug_tags %}
+
+<table class="pycassa-trace pycassa-stack-trace" id="pycassa-stack-trace-queries-{{ forloop_counter }}">
+    {# <thead> #}
+    {#     <tr> #}
+    {#         <th>{% trans "File" %}/{% trans "Code" %}</th> #}
+    {#     </tr> #}
+    {# </thead> #}
+    <tbody>
+    {% for line in stack_trace %}
+        <tr class="{% cycle 'djDebugOdd' 'djDebugEven' %}">
+            <td class="file">File: {{ line.0|embolden_file }}, line: {{ line.1 }} in <span class="code">{{ line.2 }}</span>
+            <div class="code">{{ line.3|highlight:"python"|safe }}</div></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
