@@ -7,6 +7,7 @@ Modify your `settings.py` Add `debug_toolbar_pycassa` to `INSTALLED_APPS` and `D
 ```
 INSTALLED_APPS = (
     ...
+    'debug_toolbar',
     'debug_toolbar_pycassa',
 )
 ```
