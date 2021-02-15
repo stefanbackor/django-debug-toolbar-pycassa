@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from debug_toolbar.panels import Panel
 
-import pycassa_tracker as tracker
+from . import pycassa_tracker as tracker
 
 SUBTITLE_TEMPLATE = u"""
 {% for o, n, t in operations %}
@@ -31,24 +31,24 @@ class PycassaDebugPanel(Panel):
     def nav_subtitle(self):
         fun = lambda x, y: (x, len(y), '%.2f' % sum(z['time'] for z in y))
         ctx = {'operations': [], 'count': 0, 'time': 0}
-        
+
         if tracker.queries:
             ctx['operations'].append(fun('read', tracker.queries))
             ctx['count'] += len(tracker.queries)
             ctx['time'] += sum(x['time'] for x in tracker.queries)
-        
+
         if tracker.inserts:
             ctx['operations'].append(fun('insert', tracker.inserts))
             ctx['count'] += len(tracker.inserts)
             ctx['time'] += sum(x['time'] for x in tracker.inserts)
-        
+
         if tracker.removes:
             ctx['operations'].append(fun('remove', tracker.removes))
             ctx['count'] += len(tracker.removes)
             ctx['time'] += sum(x['time'] for x in tracker.removes)
-        
+
         ctx['time'] = '%.2f' % ctx['time']
-        
+
         return mark_safe(Template(SUBTITLE_TEMPLATE).render(Context(ctx)))
 
     def title(self):

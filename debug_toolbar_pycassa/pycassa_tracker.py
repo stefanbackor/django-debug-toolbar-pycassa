@@ -2,7 +2,8 @@ import functools
 import time
 import inspect
 import os
-import SocketServer
+
+import six
 
 import pycassa
 
@@ -263,7 +264,7 @@ def _tidy_stacktrace(stack):
     """
     django_path = os.path.realpath(os.path.dirname(django.__file__))
     django_path = os.path.normpath(os.path.join(django_path, '..'))
-    socketserver_path = os.path.realpath(os.path.dirname(SocketServer.__file__))
+    socketserver_path = os.path.realpath(os.path.dirname(six.moves.socketserver.__file__))
     pycassa_path = os.path.realpath(os.path.dirname(pycassa.__file__))
 
     trace = []
